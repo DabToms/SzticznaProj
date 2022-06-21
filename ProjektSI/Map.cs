@@ -35,28 +35,43 @@ namespace ProjektSI
                 }
             }
         }
-        public void consumePoint(Node point)
-        {
-            plansza[point.x][point.y].znak = ' ';
-        }
+        /// <summary>
+        /// Przemieść gracza
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
         public void movePlayer(int x, int y)
         {
             player.y = y;
             player.x = x;
             plansza[player.y][player.x].znak = playerChar;
         }
+        /// <summary>
+        /// Przemieść gracza
+        /// </summary>
+        /// <param name="node"></param>
         public void movePlayer(Node node)
         {
             player.y = node.y;
             player.x = node.x;
             plansza[player.y][player.x].znak = playerChar;
         }
+        /// <summary>
+        /// Ustaw znaki przeszkód i punktów
+        /// </summary>
+        /// <param name="obstacle"></param>
+        /// <param name="point"></param>
         public void setCharacters(char obstacle, char point)
         {
             this.obstacle = obstacle;
             this.point = point;
         }
 
+        /// <summary>
+        /// Inicjalizacja mapy z prawdopodobnieństwami na generację obiektów
+        /// </summary>
+        /// <param name="przeszkoda"></param>
+        /// <param name="punkt"></param>
         public void initialize(double przeszkoda, double punkt)
         {
             Random r = new Random();
@@ -105,6 +120,13 @@ namespace ProjektSI
                 }
             }
         }
+        /// <summary>
+        /// Inicjalizacja gracza
+        /// </summary>
+        /// <param name="character"></param>
+        /// <param name="trail"></param>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
         public void setPlayer(char character, char trail, int x, int y)
         {
             this.player = new Node(x, y, character);
@@ -112,6 +134,10 @@ namespace ProjektSI
             plansza[y][x] = this.player;
             this.playerTrail = trail;
         }
+
+        /// <summary>
+        /// Wypisane mapy
+        /// </summary>
         public void printMap()
         {
             for (int i = 0; i < this.wysokosc; i++)
@@ -126,41 +152,51 @@ namespace ProjektSI
 
         }
 
-        public Node? scanForPoint(int promien)
+        /// <summary>
+        /// Skanowanie punktów z coraz większym promieniem
+        /// </summary>
+        /// <param name="maxPromien">Maksmalny promień skanowania</param>
+        /// <returns></returns>
+        public Node? scanForPoint(int maxPromien)
         {
-            int aktualX, aktualY;
-            for (int promienSkanu = 1; promienSkanu <= promien; promienSkanu++)
+            // startowe pozycje skanowania, wybrane są rogi
+            int startSkanX, startSkanY;
+            // skanowanie ze zwiększającym się promieniem
+            for (int promienSkanu = 1; promienSkanu <= maxPromien; promienSkanu++)
             {
                 // Sprawdzenie wykroczenia poza planszę 
+                // TUTAJ SPRAWDZIĆ I POPRAWIĆ
                 if (this.player.x + promienSkanu > this.szerokosc || this.player.x - promienSkanu < 0 || this.player.y + promienSkanu > this.wysokosc || this.player.y - promienSkanu < 0)
                 {
                     break;
                 }
 
-                aktualX = this.player.x - promienSkanu;
-                aktualY = this.player.y - promienSkanu;
+                startSkanX = this.player.x - promienSkanu;
+                startSkanY = this.player.y - promienSkanu;
                 for (int i = 0; i < promienSkanu * 2 + 1; i++)
                 {
-                    if (plansza[aktualY + i][aktualX].znak == this.point)
+                    // czy pole jest punktem
+                    if (plansza[startSkanY + i][startSkanX].znak == this.point)
                     {
-                        return new Node(aktualX, aktualY+i, this.point);
+                        // zwracamy punkt
+                        return plansza[startSkanY + i][startSkanX];
                     }
-                    if (plansza[aktualY][aktualX + i].znak == this.point)
+                    if (plansza[startSkanY][startSkanX + i].znak == this.point)
                     {
-                        return new Node(aktualX+i, aktualY, this.point);
+                        return plansza[startSkanY][startSkanX+i];
                     }
                 }
-                aktualX = this.player.x + promienSkanu;
-                aktualY = this.player.y + promienSkanu;
+                startSkanX = this.player.x + promienSkanu;
+                startSkanY = this.player.y + promienSkanu;
                 for (int i = 0; i < promienSkanu * 2 + 1; i++)
                 {
-                    if (plansza[aktualY - i][aktualX].znak == this.point)
+                    if (plansza[startSkanY - i][startSkanX].znak == this.point)
                     {
-                        return new Node(aktualX, aktualY-i, this.point);
+                        return plansza[startSkanY - i][startSkanX];
                     }
-                    if (plansza[aktualY][aktualX -i].znak == this.point)
+                    if (plansza[startSkanY][startSkanX -i].znak == this.point)
                     {
-                        return new Node(aktualX-i, aktualY, this.point);
+                        return plansza[startSkanY][startSkanX -i];
                     }
                 }
             }
