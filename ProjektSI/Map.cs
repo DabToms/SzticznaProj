@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AStar;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,33 +9,40 @@ namespace ProjektSI
 {
     public class Map
     {
+        public int wynik = 0;
         public int wysokosc { get; set; }
         public int szerokosc { get; set; }
 
-        public Node[][] plansza { get; set; }
+        public short[,] plansza { get; set; }
 
-        public Node player { get; set; }
+        public Position playerPos { get; set; }
 
         public char playerChar { get; set; }
+        private short playerCharid = 4;
+
         public char playerTrail { get; set; }
+        public short playerTrailid = 5;
 
         public char point { get; set; }
+        private short pointid = 2;
+
         public char obstacle { get; set; }
+        private short obstacleid = 0;
 
         public Map(int x, int y)
         {
             this.wysokosc = y;
             this.szerokosc = x;
-            plansza = new Node[this.wysokosc][];
-            for (int j = 0; j < this.wysokosc; j++)
+            this.plansza = new short[x, y];
+            for(int i = 0; i < x; i++)
             {
-                plansza[j] = new Node[this.szerokosc];
-                for (int k = 0; k < this.szerokosc; k++)
+                for(int j = 0; j < y; j++)
                 {
-                    plansza[j][k] = new Node(k, j, ' ');
+                    plansza[i, j] = 1;
                 }
             }
         }
+
         /// <summary>
         /// Przemieść gracza
         /// </summary>
@@ -42,19 +50,17 @@ namespace ProjektSI
         /// <param name="y"></param>
         public void movePlayer(int x, int y)
         {
-            player.y = y;
-            player.x = x;
-            plansza[player.y][player.x].znak = playerChar;
+            playerPos = new Position(x,y);
+            plansza[playerPos.Row, playerPos.Column] = playerCharid;
         }
         /// <summary>
         /// Przemieść gracza
         /// </summary>
         /// <param name="node"></param>
-        public void movePlayer(Node node)
+        public void movePlayer(Position node)
         {
-            player.y = node.y;
-            player.x = node.x;
-            plansza[player.y][player.x].znak = playerChar;
+            playerPos = node;
+            plansza[playerPos.Row, playerPos.Column] = playerCharid;
         }
         /// <summary>
         /// Ustaw znaki przeszkód i punktów
@@ -81,41 +87,33 @@ namespace ProjektSI
                 // 1/4 szansy na wygenerowanie ściany
                 if (r.NextDouble() <= przeszkoda)
                 {
-                    plansza[0][j].znak = this.obstacle;
+                    plansza[0, j] = this.obstacleid;
                 }
                 // 1/8 szansy na wygenerowanie punktu
                 else if (r.NextDouble() <= punkt)
                 {
-                    plansza[0][j].znak = this.point;
-                }
-                else
-                {
-                    plansza[0][j].znak = ' ';
+                    plansza[0, j] = this.pointid;
                 }
             }
 
-            for (int i = 1; i < wysokosc; i++)
+            for (int i = 1; i < szerokosc; i++)
             {
-                for (int j = 0; j < szerokosc; j++)
+                for (int j = 0; j < wysokosc; j++)
                 {
                     // 1/4 szansy na wygenerowanie ściany jeżeli na górze jest ściana
-                    if (plansza[i-1][j].znak == '#' && r.NextDouble() <= przeszkoda/2)
+                    if (plansza[i-1, j] == this.obstacleid && r.NextDouble() <= przeszkoda/2)
                     {
-                        plansza[i][j].znak = this.obstacle;
+                        plansza[i, j] = this.obstacleid;
                     }
                     // 1/8 szansy na wygenerowanie ściany
                     else if (r.NextDouble() <= przeszkoda)
                     {
-                        plansza[i][j].znak = this.obstacle;
+                        plansza[i, j] = this.obstacleid;
                     }
                     // 1/8 szansy na wygenerowanie punktu
                     else if (r.NextDouble() <= punkt)
                     {
-                        plansza[i][j].znak = this.point;
-                    }
-                    else
-                    {
-                        plansza[i][j].znak = ' ';
+                        plansza[i, j] = this.pointid;
                     }
                 }
             }
@@ -129,9 +127,9 @@ namespace ProjektSI
         /// <param name="y"></param>
         public void setPlayer(char character, char trail, int x, int y)
         {
-            this.player = new Node(x, y, character);
             this.playerChar = character;
-            plansza[y][x] = this.player;
+            plansza[x, y] = this.playerCharid;
+            playerPos = new Position(x, y);
             this.playerTrail = trail;
         }
 
@@ -140,11 +138,35 @@ namespace ProjektSI
         /// </summary>
         public void printMap()
         {
-            for (int i = 0; i < this.wysokosc; i++)
+            for (int i = 0; i < this.szerokosc; i++)
             {
-                for (int j = 0; j < this.szerokosc; j++)
+                for (int j = 0; j < this.wysokosc; j++)
                 {
-                    Console.Write(this.plansza[i][j].znak);
+                    if (this.plansza[i, j] == this.obstacleid)
+                    {
+                        Console.ForegroundColor = System.ConsoleColor.Red;
+                        Console.Write(obstacle);
+                    }
+                    else if (this.plansza[i, j] == this.playerCharid)
+                    {
+                        Console.ForegroundColor = System.ConsoleColor.Green;
+                        Console.Write(playerChar);
+                    }
+                    else if (this.plansza[i, j] == this.playerTrailid)
+                    {
+                        Console.ForegroundColor = System.ConsoleColor.Blue;
+                        Console.Write(playerTrail);
+                    }
+                    else if (this.plansza[i, j] == this.pointid)
+                    {
+                        Console.ForegroundColor = System.ConsoleColor.Yellow;
+                        Console.Write(point);
+                    }
+                    else
+                    {
+                        Console.Write(' ');
+                    }
+
                 }
                 Console.WriteLine();
             }
@@ -157,7 +179,7 @@ namespace ProjektSI
         /// </summary>
         /// <param name="maxPromien">Maksmalny promień skanowania</param>
         /// <returns></returns>
-        public Node? scanForPoint(int maxPromien)
+        public Position? scanForPoint(int maxPromien)
         {
             // startowe pozycje skanowania, wybrane są rogi
             int startSkanX, startSkanY;
@@ -166,37 +188,41 @@ namespace ProjektSI
             {
                 // Sprawdzenie wykroczenia poza planszę 
                 // TUTAJ SPRAWDZIĆ I POPRAWIĆ
-                if (this.player.x + promienSkanu > this.szerokosc || this.player.x - promienSkanu < 0 || this.player.y + promienSkanu > this.wysokosc || this.player.y - promienSkanu < 0)
+                if (this.playerPos.Row + promienSkanu > this.szerokosc || this.playerPos.Row - promienSkanu < 0 || this.playerPos.Column + promienSkanu > this.wysokosc || this.playerPos.Column - promienSkanu < 0)
                 {
                     break;
                 }
 
-                startSkanX = this.player.x - promienSkanu;
-                startSkanY = this.player.y - promienSkanu;
+                startSkanX = this.playerPos.Row - promienSkanu;
+                startSkanY = this.playerPos.Column - promienSkanu;
                 for (int i = 0; i < promienSkanu * 2 + 1; i++)
                 {
                     // czy pole jest punktem
-                    if (plansza[startSkanY + i][startSkanX].znak == this.point)
+                    if (plansza[startSkanX + i, startSkanY] == this.pointid)
                     {
                         // zwracamy punkt
-                        return plansza[startSkanY + i][startSkanX];
+                        wynik++;
+                        return new Position(startSkanX + i, startSkanY);
                     }
-                    if (plansza[startSkanY][startSkanX + i].znak == this.point)
+                    if (plansza[startSkanX, startSkanY + i] == this.pointid)
                     {
-                        return plansza[startSkanY][startSkanX+i];
+                        wynik++;
+                        return new Position(startSkanX, startSkanY+i);
                     }
                 }
-                startSkanX = this.player.x + promienSkanu;
-                startSkanY = this.player.y + promienSkanu;
+                startSkanX = this.playerPos.Row + promienSkanu;
+                startSkanY = this.playerPos.Column + promienSkanu;
                 for (int i = 0; i < promienSkanu * 2 + 1; i++)
                 {
-                    if (plansza[startSkanY - i][startSkanX].znak == this.point)
+                    if (plansza[startSkanX - i, startSkanY] == this.pointid)
                     {
-                        return plansza[startSkanY - i][startSkanX];
+                        wynik++;
+                        return new Position(startSkanX - i, startSkanY);
                     }
-                    if (plansza[startSkanY][startSkanX -i].znak == this.point)
+                    if (plansza[startSkanX, startSkanY - i] == this.pointid)
                     {
-                        return plansza[startSkanY][startSkanX -i];
+                        wynik++;
+                        return new Position(startSkanX, startSkanY -i);
                     }
                 }
             }

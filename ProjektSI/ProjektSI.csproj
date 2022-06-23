@@ -7,4 +7,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Aptacode.PathFinder" Version="1.0.16" />
+    <PackageReference Include="AStarLite" Version="1.1.0" />
+  </ItemGroup>
+
 </Project>
